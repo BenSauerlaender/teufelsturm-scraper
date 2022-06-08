@@ -9,8 +9,7 @@ const downloadHTML = async (htmlPath: string) =>
     const downloadStream = got.stream.post(
       "http://teufelsturm.de/wege/suche.php",
       {
-        json: {
-          start: "0",
+        form: {
           gebiet: "0",
           text: "",
           skala_von: "",
@@ -39,6 +38,7 @@ const downloadHTML = async (htmlPath: string) =>
         reject(error);
       })
       .on("finish", () => {
+        fileWriterStream.close();
         resolve();
       });
   });
@@ -46,8 +46,13 @@ const downloadHTML = async (htmlPath: string) =>
 const parseToJSON = async (htmlPath: string, jsonPath: string) =>
   new Promise<void>((resolve, reject) => {
     const $ = cheerio.load(fs.readFileSync(htmlPath));
-    $("body:nth-child(2) ").each((i, element) => {
-      console.log(element);
+    $(
+      "body:nth-child(2) tbody tr td:nth-child(2) table tbody tr td div table tbody tr"
+    ).each((rowIndex, row) => {
+      if (rowIndex == 28)
+        row.children.forEach((element, index) => {
+          console.log($($(element).find("font")).text());
+        });
     });
   });
 
